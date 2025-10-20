@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Planner Pro - Planlar</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <header>
+    <h1>Planlar</h1>
+    <button onclick="location.href='index.html'">⬅ Ana Takvim</button>
+  </header>
+
+  <main class="container">
+    <section class="todo">
+      <h2 id="selectedDate">📌 Tarih Seçilmedi</h2>
+      <div class="input-group">
+        <input id="taskInput" placeholder="Yeni görev yaz..." />
+        <button id="addTaskBtn">Ekle</button>
+      </div>
+      <ul id="taskList"></ul>
+    </section>
+  </main>
+
+  <script src="plans.js"></script>
+</body>
+</html>

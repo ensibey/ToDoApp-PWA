@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Planner Pro</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Planner Pro</h1>
+  </header>
+
+  <main class="container">
+    <section class="calendar">
+      <h2>📅 Takvim</h2>
+      <input type="date" id="datePicker" />
+      <button id="viewPlans">Planları Gör</button>
+    </section>
+  </main>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
+
