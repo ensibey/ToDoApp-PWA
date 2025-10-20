@@ -2,30 +2,114 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Planner Pro</title>
+  <meta name="description" content="Planner Pro - Kişisel planlama uygulaması">
+  <title>Planner Pro | Akıllı Planlama Uygulaması</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
+    // Service Worker kaydı
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
+      navigator.serviceWorker.register('service-worker.js')
+        .then(registration => console.log('Service Worker kaydedildi:', registration))
+        .catch(error => console.log('Service Worker kaydı başarısız:', error));
     }
+    
+    // Kullanıcı tercihlerini yükle
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    });
   </script>
 </head>
 <body>
-  <header>
-    <h1>Planner Pro</h1>
-  </header>
+  <!-- Ana Uygulama Konteyneri -->
+  <div class="app-container">
+    <!-- Başlık Bölümü -->
+    <header class="app-header">
+      <div class="header-content">
+        <div class="logo">
+          <i class="fas fa-calendar-check"></i>
+          <h1>Planner Pro</h1>
+        </div>
+        <button id="themeToggle" class="theme-btn" aria-label="Tema değiştir">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
+    </header>
 
-  <main class="container">
-    <section class="calendar">
-      <h2>📅 Takvim</h2>
-      <input type="date" id="datePicker" />
-      <button id="viewPlans">Planları Gör</button>
-    </section>
-  </main>
+    <!-- Ana İçerik -->
+    <main class="container">
+      <!-- Hoşgeldiniz Bölümü -->
+      <section class="welcome-section">
+        <div class="welcome-content">
+          <h2>Planlarınızı Yönetin, Hayatınızı Kolaylaştırın</h2>
+          <p>Günlük görevlerinizi organize edin, hedeflerinize ulaşın ve zamanınızı verimli kullanın.</p>
+        </div>
+      </section>
 
+      <!-- Takvim Bölümü -->
+      <section class="calendar-section">
+        <div class="section-header">
+          <h2><i class="fas fa-calendar-alt"></i> Tarih Seçin</h2>
+          <p>Planlarınızı görüntülemek veya yeni planlar eklemek için bir tarih seçin</p>
+        </div>
+        
+        <div class="date-selector">
+          <div class="date-input-container">
+            <i class="fas fa-calendar-day"></i>
+            <input type="date" id="datePicker" aria-label="Tarih seçin">
+          </div>
+          <button id="viewPlans" class="primary-btn">
+            <i class="fas fa-list-check"></i>
+            Planları Görüntüle
+          </button>
+        </div>
+        
+        <!-- Hızlı Erişim Butonları -->
+        <div class="quick-actions">
+          <h3>Hızlı Erişim</h3>
+          <div class="quick-buttons">
+            <button class="quick-btn" data-offset="0">
+              <i class="fas fa-sun"></i>
+              <span>Bugün</span>
+            </button>
+            <button class="quick-btn" data-offset="1">
+              <i class="fas fa-cloud-sun"></i>
+              <span>Yarın</span>
+            </button>
+            <button class="quick-btn" data-offset="7">
+              <i class="fas fa-calendar-week"></i>
+              <span>1 Hafta</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Son Planlar Bölümü -->
+      <section class="recent-plans-section">
+        <div class="section-header">
+          <h2><i class="fas fa-clock-rotate-left"></i> Son Planlarınız</h2>
+          <p>Son zamanlarda plan eklediğiniz tarihler</p>
+        </div>
+        
+        <div id="recentPlans" class="recent-plans-list">
+          <!-- JavaScript ile dinamik olarak doldurulacak -->
+        </div>
+      </section>
+    </main>
+
+    <!-- Alt Bilgi -->
+    <footer class="app-footer">
+      <p>&copy; 2023 Planner Pro - Tüm hakları saklıdır</p>
+    </footer>
+  </div>
+
+  <!-- JavaScript Dosyaları -->
   <script src="renderer.js"></script>
 </body>
 </html>
-

@@ -1,269 +1,479 @@
-const urlParams = new URLSearchParams(window.location.search);
-const selectedDate = urlParams.get('date');
+/**
+ * Planner Pro - Planlar Sayfası JavaScript
+ * Bu dosya planlar sayfasının işlevselliğini yönetir
+ */
 
-// DOM Elements
-const selectedDateElement = document.getElementById('selectedDate');
-const selectedWeekdayElement = document.getElementById('selectedWeekday');
+// DOM Elementleri
+const pageDate = document.getElementById('pageDate');
+const pageDescription = document.getElementById('pageDescription');
 const taskInput = document.getElementById('taskInput');
 const addTaskBtn = document.getElementById('addTaskBtn');
 const taskList = document.getElementById('taskList');
-const emptyState = document.getElementById('emptyState');
-const totalTasksElement = document.getElementById('totalTasks');
-const completedTasksElement = document.getElementById('completedTasks');
-const pendingTasksElement = document.getElementById('pendingTasks');
+const emptyTasks = document.getElementById('emptyTasks');
 const filterButtons = document.querySelectorAll('.filter-btn');
+const themeToggle = document.getElementById('themeToggle');
 
-// Constants
-const PLANS_KEY = 'plannerDatePlans';
+// İstatistik Elementleri
+const totalTasks = document.getElementById('totalTasks');
+const completedTasks = document.getElementById('completedTasks');
+const pendingTasks = document.getElementById('pendingTasks');
+const completionRate = document.getElementById('completionRate');
+const tasksCount = document.getElementById('tasksCount');
+
+// Uygulama durumu
+let currentDate = '';
 let currentFilter = 'all';
+let tasks = [];
 
-// Initialize
+// Uygulama başlatma
 document.addEventListener('DOMContentLoaded', () => {
-  if (!selectedDate) {
-    showNotification('Geçersiz tarih!', 'warning');
+  console.log('Planlar sayfası başlatılıyor...');
+  
+  // URL parametrelerini al
+  const urlParams = new URLSearchParams(window.location.search);
+  currentDate = urlParams.get('date');
+  
+  if (!currentDate || !isValidDate(currentDate)) {
+    showNotification('Geçersiz tarih! Ana sayfaya yönlendiriliyorsunuz.', 'error');
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 2000);
     return;
   }
   
-  updateDateDisplay();
-  loadPlans();
+  // Tema yükle
+  loadTheme();
+  
+  // Sayfayı başlat
+  initializePage();
+  
+  // Olay dinleyicilerini ayarla
   setupEventListeners();
+  
+  console.log('Planlar sayfası başarıyla başlatıldı:', currentDate);
 });
 
-// Update date display
-function updateDateDisplay() {
-  const date = new Date(selectedDate);
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+/**
+ * Sayfayı başlatır
+ */
+function initializePage() {
+  // Tarih bilgisini güncelle
+  updateDateDisplay();
   
-  let dateText = '';
-  if (date.toDateString() === today.toDateString()) {
-    dateText = 'Bugün';
-  } else if (date.toDateString() === tomorrow.toDateString()) {
-    dateText = 'Yarın';
-  } else {
-    dateText = date.toLocaleDateString('tr-TR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
+  // Görevleri yükle
+  loadTasks();
   
-  selectedDateElement.innerHTML = `<i class="fas fa-calendar-check"></i> ${dateText}`;
-  selectedWeekdayElement.textContent = date.toLocaleDateString('tr-TR', { weekday: 'long' });
+  // İstatistikleri güncelle
+  updateStatistics();
+  
+  // Görev listesini render et
+  renderTaskList();
 }
 
-// Setup event listeners
+/**
+ * Tüm olay dinleyicilerini ayarlar
+ */
 function setupEventListeners() {
+  // Görev ekleme
   addTaskBtn.addEventListener('click', addTask);
   taskInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') addTask();
   });
   
+  // Tema değiştirme
+  themeToggle.addEventListener('click', toggleTheme);
+  
+  // Filtre butonları
   filterButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const filter = button.getAttribute('data-filter');
-      setFilter(filter);
-    });
+    button.addEventListener('click', handleFilterChange);
+  });
+  
+  // Input sınır kontrolü
+  taskInput.addEventListener('input', () => {
+    const maxLength = 200;
+    const currentLength = taskInput.value.length;
+    
+    if (currentLength > maxLength * 0.8) {
+      taskInput.style.borderColor = 'var(--warning-color)';
+    } else {
+      taskInput.style.borderColor = '';
+    }
   });
 }
 
-// Add new task
+/**
+ * Tarih görüntüsünü günceller
+ */
+function updateDateDisplay() {
+  const dateObj = new Date(currentDate);
+  const formattedDate = formatDetailedDate(dateObj);
+  
+  pageDate.textContent = formattedDate;
+  pageDescription.textContent = `${formattedDate} tarihi için planlarınız`;
+  
+  document.title = `Planner Pro | ${formattedDate}`;
+}
+
+/**
+ * Tarihi detaylı biçimde formatlar
+ */
+function formatDetailedDate(date) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const dateObj = new Date(date);
+  dateObj.setHours(0, 0, 0, 0);
+  
+  const dayDiff = Math.floor((dateObj - today) / (1000 * 60 * 60 * 24));
+  
+  let dayInfo = '';
+  if (dayDiff === 0) dayInfo = ' (Bugün)';
+  else if (dayDiff === 1) dayInfo = ' (Yarın)';
+  else if (dayDiff === -1) dayInfo = ' (Dün)';
+  else if (dayDiff > 1) dayInfo = ` (${dayDiff} gün sonra)`;
+  else if (dayDiff < -1) dayInfo = ` (${Math.abs(dayDiff)} gün önce)`;
+  
+  return dateObj.toLocaleDateString('tr-TR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }) + dayInfo;
+}
+
+/**
+ * Görevleri localStorage'dan yükler
+ */
+function loadTasks() {
+  const PLANS_KEY = 'plannerDatePlans';
+  const allPlans = JSON.parse(localStorage.getItem(PLANS_KEY) || '{}');
+  tasks = allPlans[currentDate] || [];
+  console.log(`${tasks.length} görev yüklendi`);
+}
+
+/**
+ * Görevleri localStorage'a kaydeder
+ */
+function saveTasks() {
+  const PLANS_KEY = 'plannerDatePlans';
+  const allPlans = JSON.parse(localStorage.getItem(PLANS_KEY) || '{}');
+  
+  if (tasks.length > 0) {
+    allPlans[currentDate] = tasks;
+  } else {
+    delete allPlans[currentDate];
+  }
+  
+  localStorage.setItem(PLANS_KEY, JSON.stringify(allPlans));
+  console.log('Görevler kaydedildi');
+}
+
+/**
+ * Yeni görev ekler
+ */
 function addTask() {
   const taskText = taskInput.value.trim();
+  
   if (!taskText) {
     showNotification('Lütfen bir görev yazın!', 'warning');
     taskInput.focus();
     return;
   }
   
-  const allPlans = getAllPlans();
-  if (!allPlans[selectedDate]) allPlans[selectedDate] = [];
+  if (taskText.length > 200) {
+    showNotification('Görev çok uzun! Maksimum 200 karakter.', 'warning');
+    return;
+  }
   
+  // Yeni görev oluştur
   const newTask = {
     id: Date.now().toString(),
     text: taskText,
     completed: false,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    completedAt: null
   };
   
-  allPlans[selectedDate].push(newTask);
-  savePlans(allPlans);
+  // Görevleri güncelle
+  tasks.unshift(newTask);
+  saveTasks();
   
+  // UI'ı güncelle
+  renderTaskList();
+  updateStatistics();
+  
+  // Input'u temizle
   taskInput.value = '';
   taskInput.focus();
-  loadPlans();
   
   showNotification('Görev başarıyla eklendi!', 'success');
+  console.log('Yeni görev eklendi:', newTask);
 }
 
-// Load and display plans
-function loadPlans() {
-  const allPlans = getAllPlans();
-  const tasks = allPlans[selectedDate] || [];
+/**
+ * Görev durumunu değiştirir
+ */
+function toggleTaskCompletion(taskId) {
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
   
-  // Update stats
-  updateStats(tasks);
+  task.completed = !task.completed;
+  task.completedAt = task.completed ? new Date().toISOString() : null;
   
-  // Filter tasks
-  const filteredTasks = filterTasks(tasks, currentFilter);
+  saveTasks();
+  renderTaskList();
+  updateStatistics();
   
-  // Show/hide empty state
-  if (filteredTasks.length === 0) {
-    emptyState.style.display = 'block';
-    taskList.style.display = 'none';
-  } else {
-    emptyState.style.display = 'none';
-    taskList.style.display = 'block';
+  const action = task.completed ? 'tamamlandı' : 'beklemeye alındı';
+  showNotification(`Görev ${action}!`, 'info');
+  console.log(`Görev durumu değiştirildi: ${taskId} -> ${task.completed}`);
+}
+
+/**
+ * Görevi düzenler
+ */
+function editTask(taskId) {
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+  
+  const newText = prompt('Görevi düzenleyin:', task.text);
+  
+  if (newText !== null && newText.trim() !== '' && newText !== task.text) {
+    if (newText.length > 200) {
+      showNotification('Görev çok uzun! Maksimum 200 karakter.', 'warning');
+      return;
+    }
+    
+    task.text = newText.trim();
+    saveTasks();
+    renderTaskList();
+    
+    showNotification('Görev başarıyla güncellendi!', 'success');
+    console.log('Görev düzenlendi:', taskId);
+  }
+}
+
+/**
+ * Görevi siler
+ */
+function deleteTask(taskId) {
+  if (!confirm('Bu görevi silmek istediğinizden emin misiniz?')) {
+    return;
   }
   
-  // Render tasks
-  taskList.innerHTML = filteredTasks.map(task => `
-    <li class="task-item ${task.completed ? 'completed' : ''}" data-id="${task.id}">
-      <div class="task-checkbox">
-        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}')">
-        <span class="checkmark"></span>
-      </div>
-      <div class="task-text">${task.text}</div>
-      <div class="task-actions">
-        <button class="task-action-btn edit-btn" onclick="editTask('${task.id}')">
-          <i class="fas fa-edit"></i>
-        </button>
-        <button class="task-action-btn delete-btn" onclick="deleteTask('${task.id}')">
-          <i class="fas fa-trash"></i>
-        </button>
-      </div>
-    </li>
-  `).join('');
+  tasks = tasks.filter(t => t.id !== taskId);
+  saveTasks();
+  renderTaskList();
+  updateStatistics();
+  
+  showNotification('Görev başarıyla silindi!', 'success');
+  console.log('Görev silindi:', taskId);
 }
 
-// Update task statistics
-function updateStats(tasks) {
+/**
+ * Görev listesini render eder
+ */
+function renderTaskList() {
+  // Filtrelenmiş görevleri al
+  const filteredTasks = getFilteredTasks();
+  
+  // Boş durum kontrolü
+  if (filteredTasks.length === 0) {
+    taskList.style.display = 'none';
+    emptyTasks.style.display = 'block';
+    tasksCount.textContent = '0 görev bulundu';
+    return;
+  }
+  
+  taskList.style.display = 'block';
+  emptyTasks.style.display = 'none';
+  tasksCount.textContent = `${filteredTasks.length} görev bulundu`;
+  
+  // Görev listesini oluştur
+  taskList.innerHTML = '';
+  
+  filteredTasks.forEach(task => {
+    const taskItem = createTaskItem(task);
+    taskList.appendChild(taskItem);
+  });
+}
+
+/**
+ * Filtrelenmiş görevleri döndürür
+ */
+function getFilteredTasks() {
+  switch (currentFilter) {
+    case 'completed':
+      return tasks.filter(task => task.completed);
+    case 'pending':
+      return tasks.filter(task => !task.completed);
+    case 'all':
+    default:
+      return [...tasks]; // Kopyasını döndür
+  }
+}
+
+/**
+ * Görev öğesi oluşturur
+ */
+function createTaskItem(task) {
+  const taskItem = document.createElement('li');
+  taskItem.className = `task-item fade-in ${task.completed ? 'completed' : ''}`;
+  taskItem.setAttribute('data-task-id', task.id);
+  
+  taskItem.innerHTML = `
+    <label class="task-checkbox">
+      <input type="checkbox" ${task.completed ? 'checked' : ''}>
+      <span class="checkmark"></span>
+    </label>
+    <span class="task-text">${escapeHtml(task.text)}</span>
+    <div class="task-actions">
+      <button class="task-action-btn edit-btn" title="Görevi düzenle">
+        <i class="fas fa-edit"></i>
+      </button>
+      <button class="task-action-btn delete-btn" title="Görevi sil">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+  `;
+  
+  // Olay dinleyicilerini ekle
+  const checkbox = taskItem.querySelector('input[type="checkbox"]');
+  const editBtn = taskItem.querySelector('.edit-btn');
+  const deleteBtn = taskItem.querySelector('.delete-btn');
+  
+  checkbox.addEventListener('change', () => toggleTaskCompletion(task.id));
+  editBtn.addEventListener('click', () => editTask(task.id));
+  deleteBtn.addEventListener('click', () => deleteTask(task.id));
+  
+  return taskItem;
+}
+
+/**
+ * İstatistikleri günceller
+ */
+function updateStatistics() {
   const total = tasks.length;
   const completed = tasks.filter(task => task.completed).length;
   const pending = total - completed;
+  const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
   
-  totalTasksElement.textContent = total;
-  completedTasksElement.textContent = completed;
-  pendingTasksElement.textContent = pending;
+  totalTasks.textContent = total;
+  completedTasks.textContent = completed;
+  pendingTasks.textContent = pending;
+  completionRate.textContent = `${rate}%`;
+  
+  console.log(`İstatistikler güncellendi: ${completed}/${total} (%${rate})`);
 }
 
-// Filter tasks based on current filter
-function filterTasks(tasks, filter) {
-  switch(filter) {
-    case 'active':
-      return tasks.filter(task => !task.completed);
-    case 'completed':
-      return tasks.filter(task => task.completed);
-    default:
-      return tasks;
-  }
-}
-
-// Set current filter
-function setFilter(filter) {
+/**
+ * Filtre değişikliğini işler
+ */
+function handleFilterChange(event) {
+  const button = event.currentTarget;
+  const filter = button.getAttribute('data-filter');
+  
+  // Aktif butonu güncelle
+  filterButtons.forEach(btn => btn.classList.remove('active'));
+  button.classList.add('active');
+  
+  // Filtreyi güncelle
   currentFilter = filter;
   
-  // Update active button
-  filterButtons.forEach(button => {
-    if (button.getAttribute('data-filter') === filter) {
-      button.classList.add('active');
-    } else {
-      button.classList.remove('active');
-    }
-  });
+  // Listeyi yeniden render et
+  renderTaskList();
   
-  loadPlans();
+  console.log(`Filtre değiştirildi: ${filter}`);
 }
 
-// Toggle task completion
-function toggleTask(taskId) {
-  const allPlans = getAllPlans();
-  const taskIndex = allPlans[selectedDate].findIndex(task => task.id === taskId);
+/**
+ * Tema değiştirme işlevi
+ */
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
   
-  if (taskIndex !== -1) {
-    allPlans[selectedDate][taskIndex].completed = !allPlans[selectedDate][taskIndex].completed;
-    savePlans(allPlans);
-    loadPlans();
-  }
-}
-
-// Edit task
-function editTask(taskId) {
-  const allPlans = getAllPlans();
-  const taskIndex = allPlans[selectedDate].findIndex(task => task.id === taskId);
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
   
-  if (taskIndex !== -1) {
-    const currentText = allPlans[selectedDate][taskIndex].text;
-    const newText = prompt('Görevi düzenleyin:', currentText);
-    
-    if (newText !== null && newText.trim() !== '') {
-      allPlans[selectedDate][taskIndex].text = newText.trim();
-      savePlans(allPlans);
-      loadPlans();
-      showNotification('Görev başarıyla güncellendi!', 'success');
-    }
-  }
-}
-
-// Delete task
-function deleteTask(taskId) {
-  if (!confirm('Bu görevi silmek istediğinizden emin misiniz?')) return;
+  const icon = themeToggle.querySelector('i');
+  icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
   
-  const allPlans = getAllPlans();
-  allPlans[selectedDate] = allPlans[selectedDate].filter(task => task.id !== taskId);
-  savePlans(allPlans);
-  loadPlans();
+  console.log('Tema değiştirildi:', newTheme);
+}
+
+/**
+ * Kayıtlı temayı yükler
+ */
+function loadTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
   
-  showNotification('Görev başarıyla silindi!', 'info');
+  const icon = themeToggle.querySelector('i');
+  icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  
+  console.log('Tema yüklendi:', savedTheme);
 }
 
-// Helper functions
-function getAllPlans() {
-  return JSON.parse(localStorage.getItem(PLANS_KEY) || '{}');
+/**
+ * HTML escape fonksiyonu
+ */
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
-function savePlans(plans) {
-  localStorage.setItem(PLANS_KEY, JSON.stringify(plans));
+/**
+ * Tarih doğrulama
+ */
+function isValidDate(dateString) {
+  const date = new Date(dateString);
+  return date instanceof Date && !isNaN(date);
 }
 
-// Show notification
+/**
+ * Bildirim gösterir
+ */
 function showNotification(message, type = 'info') {
-  // Create notification element
+  const existingNotification = document.querySelector('.notification');
+  if (existingNotification) {
+    existingNotification.remove();
+  }
+  
   const notification = document.createElement('div');
   notification.className = `notification notification-${type}`;
+  
+  let icon = 'fas fa-info-circle';
+  if (type === 'success') icon = 'fas fa-check-circle';
+  if (type === 'warning') icon = 'fas fa-exclamation-triangle';
+  if (type === 'error') icon = 'fas fa-times-circle';
+  
   notification.innerHTML = `
     <div class="notification-content">
-      <i class="fas fa-${getNotificationIcon(type)}"></i>
+      <i class="${icon}"></i>
       <span>${message}</span>
     </div>
   `;
   
-  // Add to page
   document.body.appendChild(notification);
   
-  // Show with animation
   setTimeout(() => {
     notification.classList.add('show');
   }, 10);
   
-  // Remove after delay
   setTimeout(() => {
     notification.classList.remove('show');
     setTimeout(() => {
       if (notification.parentNode) {
-        notification.parentNode.removeChild(notification);
+        notification.remove();
       }
     }, 300);
   }, 3000);
 }
 
-function getNotificationIcon(type) {
-  switch(type) {
-    case 'success': return 'check-circle';
-    case 'warning': return 'exclamation-triangle';
-    case 'error': return 'times-circle';
-    default: return 'info-circle';
-  }
-}
+// Global hata yakalama
+window.addEventListener('error', (event) => {
+  console.error('Planlar sayfası hatası:', event.error);
+  showNotification('Bir hata oluştu. Lütfen sayfayı yenileyin.', 'error');
+});

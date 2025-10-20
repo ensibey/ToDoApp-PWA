@@ -1,15 +1,25 @@
 {
   "name": "Planner Pro",
-  "short_name": "Planner",
+  "short_name": "PlannerPro",
+  "description": "Akıllı planlama uygulaması - Görevlerinizi yönetin, hayatınızı kolaylaştırın",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#1c1c2c",
-  "theme_color": "#2c3e50",
+  "background_color": "#ffffff",
+  "theme_color": "#4361ee",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "lang": "tr",
+  "categories": ["productivity", "utilities"],
   "icons": [
     {
-      "src": "assets/icon.png",
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9IiM0MzYxRUUiLz4KPHBhdGggZD0iTTk2IDQ4QzcxLjIgNDggNTEuMiA2OCA1MS4yIDkyLjhDNTEuMiAxMTcuNiA3MS4yIDEzNy42IDk2IDEzNy42QzEyMC44IDEzNy42IDE0MC44IDExNy42IDE0MC44IDkyLjhDMTQwLjggNjggMTIwLjggNDggOTYgNDhaTTE0Ni40IDE0MS42SDEwNS42QzY4LjggMTQxLjYgMzguNCAxNzIgMzguNCAyMDguOFYyMjRIMTUzLjZWMjA4LjhDMTUzLjYgMTcyIDEyMy4yIDE0MS42IDE0Ni40IDE0MS42WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iNjQiIGZpbGw9IiM0MzYxRUUiLz4KPHBhdGggZD0iTTI1NiAxMjhDMTkwLjQgMTI4IDEzNi44IDE4MS42IDEzNi44IDI0Ny4yQzEzNi44IDMxMi44IDE5MC40IDM2Ni40IDI1NiAzNjYuNEMzMjEuNiAzNjYuNCAzNzUuMiAzMTIuOCAzNzUuMiAyNDcuMkMzNzUuMiAxODEuNiAzMjEuNiAxMjggMjU2IDEyOFpNMzkwLjQgMzc3LjZIMjc4LjRDMzE2LjggMzc3LjYgMzUyIDQxMi44IDM1MiA0NTEuMlY0OTZIMTYwVjQ1MS4yQzE2MCA0MTIuOCAxOTUuMiAzNzcuNiAyMzMuNiAzNzcuNkgxMjEuNkM4NC44IDM3Ny42IDU0LjQgNDA4IDU0LjQgNDQ0LjhWNDY0SDQ1Ny42VjQ0NC44QzQ1Ny42IDQwOCA0MjcuMiAzNzcuNiAzOTAuNCAzNzcuNloiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
     }
   ]
 }
