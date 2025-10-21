@@ -36,7 +36,8 @@
 
 body {
   background: var(--bg-color);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  /* 'Inter' fontu Google Fonts'tan yüklenecek */
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text-color);
   transition: var(--transition);
   line-height: 1.6;
@@ -111,6 +112,9 @@ header {
   .container {
     grid-template-columns: 1fr 1fr;
   }
+  .plans-page .container {
+    grid-template-columns: 1fr; /* Plans sayfasında tek sütun */
+  }
 }
 
 /* Section Styles */
@@ -126,6 +130,8 @@ section {
   margin-bottom: 20px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding-bottom: 15px;
+  /* Dark mode için border rengi */
+  border-color: var(--light-color); 
 }
 
 .section-header h2 {
@@ -210,7 +216,7 @@ section {
 
 .quick-buttons {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Daha kompakt hale getirildi */
   gap: 10px;
 }
 
@@ -218,9 +224,10 @@ section {
   background: var(--light-color);
   color: var(--text-color);
   border: none;
-  padding: 10px 15px;
+  padding: 12px 10px;
   border-radius: var(--border-radius);
   font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
   transition: var(--transition);
   display: flex;
@@ -319,6 +326,14 @@ section {
   border-left: 4px solid var(--primary-color);
 }
 
+.notification-error {
+  border-left: 4px solid var(--danger-color);
+}
+
+.notification i {
+    font-size: 1.2rem;
+}
+
 /* Back Button */
 .back-btn {
   background: var(--light-color);
@@ -370,7 +385,7 @@ section {
 .task-filters {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; */
 }
 
 .filter-btn {
@@ -436,11 +451,21 @@ section {
   background: var(--light-color);
   border-radius: var(--border-radius);
   transition: var(--transition);
+  animation: fadeIn 0.3s ease-out; /* Yeni görevler için animasyon */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .task-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-item.completed {
+    opacity: 0.7;
 }
 
 .task-item.completed .task-text {
@@ -452,6 +477,7 @@ section {
   position: relative;
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
 .task-checkbox input {
@@ -478,7 +504,9 @@ section {
 }
 
 .task-checkbox input:checked ~ .checkmark:after {
-  content: '✓';
+  content: '\f00c'; /* Font Awesome check icon */
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
   color: white;
   font-size: 12px;
 }
@@ -486,6 +514,7 @@ section {
 .task-text {
   flex: 1;
   text-align: left;
+  word-break: break-word; /* Uzun görev metinleri için */
 }
 
 .task-actions {
@@ -511,20 +540,34 @@ section {
 
 .edit-btn:hover {
   color: var(--primary-color);
+  background: rgba(52, 152, 219, 0.1);
 }
 
 .delete-btn:hover {
   color: var(--danger-color);
+  background: rgba(231, 76, 60, 0.1);
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
     text-align: center;
   }
   
+  .header-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .logo {
+      justify-content: center;
+  }
+
+  .back-btn, .theme-btn {
+      padding: 8px 12px;
+  }
+
   .input-group {
     flex-direction: column;
   }
@@ -532,6 +575,11 @@ section {
   .task-stats {
     flex-direction: column;
     gap: 15px;
+    align-items: flex-start;
+  }
+
+  .stat-item {
+      align-items: flex-start;
   }
   
   .task-item {
@@ -539,6 +587,10 @@ section {
   }
   
   .task-actions {
-    opacity: 1; /* Always show on mobile */
+    opacity: 1; /* Mobil cihazlarda her zaman göster */
+  }
+
+  .task-filters {
+    flex-wrap: wrap;
   }
 }
