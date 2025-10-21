@@ -49,6 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Olay dinleyicilerini ayarla
   setupEventListeners();
+
+  // Service Worker'ı kaydet
+  registerServiceWorker();
   
   console.log('Planlar sayfası başarıyla başlatıldı:', currentDate);
 });
@@ -77,7 +80,10 @@ function setupEventListeners() {
   // Görev ekleme
   addTaskBtn.addEventListener('click', addTask);
   taskInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') addTask();
+    if (e.key === 'Enter') {
+        e.preventDefault(); // Form gönderimini engelle
+        addTask();
+    }
   });
   
   // Tema değiştirme
@@ -93,10 +99,10 @@ function setupEventListeners() {
     const maxLength = 200;
     const currentLength = taskInput.value.length;
     
-    if (currentLength > maxLength * 0.8) {
+    if (currentLength > maxLength * 0.9) {
       taskInput.style.borderColor = 'var(--warning-color)';
     } else {
-      taskInput.style.borderColor = '';
+      taskInput.style.borderColor = ''; // Varsayılan renge dön
     }
   });
 }
@@ -146,7 +152,14 @@ function formatDetailedDate(date) {
  */
 function loadTasks() {
   const PLANS_KEY = 'plannerDatePlans';
-  const allPlans = JSON.parse(localStorage.getItem(PLANS_KEY) || '{}');
+  let allPlans = {};
+  try {
+      allPlans = JSON.parse(localStorage.getItem(PLANS_KEY) || '{}');
+  } catch(e) {
+      console.error("localStorage okunurken hata oluştu:", e);
+      showNotification("Görevler yüklenirken bir hata oluştu.", "error");
+      allPlans = {};
+  }
   tasks = allPlans[currentDate] || [];
   console.log(`${tasks.length} görev yüklendi`);
 }
@@ -156,16 +169,27 @@ function loadTasks() {
  */
 function saveTasks() {
   const PLANS_KEY = 'plannerDatePlans';
-  const allPlans = JSON.parse(localStorage.getItem(PLANS_KEY) || '{}');
+  let allPlans = {};
+  try {
+      allPlans = JSON.parse(localStorage.getItem(PLANS_KEY) || '{}');
+  } catch(e) {
+      console.error("localStorage okunurken hata oluştu:", e);
+      allPlans = {}; // Veriyi sıfırla
+  }
   
   if (tasks.length > 0) {
     allPlans[currentDate] = tasks;
   } else {
-    delete allPlans[currentDate];
+    delete allPlans[currentDate]; // Boşsa tarihi sil
   }
   
-  localStorage.setItem(PLANS_KEY, JSON.stringify(allPlans));
-  console.log('Görevler kaydedildi');
+  try {
+    localStorage.setItem(PLANS_KEY, JSON.stringify(allPlans));
+    console.log('Görevler kaydedildi');
+  } catch (e) {
+    console.error("localStorage'a yazılırken hata oluştu:", e);
+    showNotification("Görevler kaydedilemedi!", "error");
+  }
 }
 
 /**
@@ -195,11 +219,17 @@ function addTask() {
   };
   
   // Görevleri güncelle
-  tasks.unshift(newTask);
+  tasks.unshift(newTask); // Yeni görevler başa eklenir
   saveTasks();
   
   // UI'ı güncelle
-  renderTaskList();
+  if (currentFilter !== 'completed') {
+      renderTaskList(); // Sadece mevcut filtre "tamamlananlar" değilse listeyi güncelle
+  } else {
+      // Eğer filtre "tamamlananlar" ise, sadece sayacı güncelle
+      // ve kullanıcıyı bilgilendir
+      showNotification('Yeni görev eklendi (Bekleyenler filtresinde görebilirsiniz)', 'info');
+  }
   updateStatistics();
   
   // Input'u temizle
@@ -220,6 +250,14 @@ function toggleTaskCompletion(taskId) {
   task.completed = !task.completed;
   task.completedAt = task.completed ? new Date().toISOString() : null;
   
+  // Görevi listenin sonuna/başına taşı (opsiyonel ama daha iyi UX)
+  tasks = tasks.filter(t => t.id !== taskId);
+  if (task.completed) {
+      tasks.push(task); // Tamamlananları sona ata
+  } else {
+      tasks.unshift(task); // Tamamlanmayanları başa al
+  }
+
   saveTasks();
   renderTaskList();
   updateStatistics();
@@ -238,19 +276,32 @@ function editTask(taskId) {
   
   const newText = prompt('Görevi düzenleyin:', task.text);
   
-  if (newText !== null && newText.trim() !== '' && newText !== task.text) {
-    if (newText.length > 200) {
-      showNotification('Görev çok uzun! Maksimum 200 karakter.', 'warning');
-      return;
-    }
-    
-    task.text = newText.trim();
-    saveTasks();
-    renderTaskList();
-    
-    showNotification('Görev başarıyla güncellendi!', 'success');
-    console.log('Görev düzenlendi:', taskId);
+  if (newText === null) {
+      return; // Kullanıcı iptal etti
   }
+
+  const trimmedText = newText.trim();
+  
+  if (trimmedText === '') {
+      showNotification('Görev boş olamaz!', 'warning');
+      return;
+  }
+  
+  if (trimmedText === task.text) {
+      return; // Değişiklik yok
+  }
+
+  if (trimmedText.length > 200) {
+    showNotification('Görev çok uzun! Maksimum 200 karakter.', 'warning');
+    return;
+  }
+  
+  task.text = trimmedText;
+  saveTasks();
+  renderTaskList();
+  
+  showNotification('Görev başarıyla güncellendi!', 'success');
+  console.log('Görev düzenlendi:', taskId);
 }
 
 /**
@@ -279,8 +330,20 @@ function renderTaskList() {
   
   // Boş durum kontrolü
   if (filteredTasks.length === 0) {
+    taskList.innerHTML = ''; // Listeyi temizle
     taskList.style.display = 'none';
     emptyTasks.style.display = 'block';
+    
+    if (tasks.length > 0) {
+        // Görev var ama filtrede yok
+        emptyTasks.querySelector('p').textContent = 'Bu filtrede gösterilecek görev yok.';
+        emptyTasks.querySelectorAll('p')[1].textContent = 'Filtrenizi değiştirmeyi deneyin.';
+    } else {
+        // Hiç görev yok
+        emptyTasks.querySelector('p').textContent = 'Bu tarih için henüz hiç görev eklenmemiş.';
+        emptyTasks.querySelectorAll('p')[1].textContent = 'Hemen bir görev ekleyerek planlamaya başlayın!';
+    }
+    
     tasksCount.textContent = '0 görev bulundu';
     return;
   }
@@ -318,8 +381,11 @@ function getFilteredTasks() {
  */
 function createTaskItem(task) {
   const taskItem = document.createElement('li');
-  taskItem.className = `task-item fade-in ${task.completed ? 'completed' : ''}`;
+  taskItem.className = `task-item ${task.completed ? 'completed' : ''}`;
   taskItem.setAttribute('data-task-id', task.id);
+  
+  // Fade-in animasyonu için kısa bir gecikme
+  setTimeout(() => taskItem.classList.add('fade-in'), 10);
   
   taskItem.innerHTML = `
     <label class="task-checkbox">
@@ -373,6 +439,8 @@ function handleFilterChange(event) {
   const button = event.currentTarget;
   const filter = button.getAttribute('data-filter');
   
+  if (filter === currentFilter) return; // Zaten aktif
+
   // Aktif butonu güncelle
   filterButtons.forEach(btn => btn.classList.remove('active'));
   button.classList.add('active');
@@ -416,7 +484,7 @@ function loadTheme() {
 }
 
 /**
- * HTML escape fonksiyonu
+ * HTML escape fonksiyonu (XSS önlemi)
  */
 function escapeHtml(text) {
   const div = document.createElement('div');
@@ -436,6 +504,7 @@ function isValidDate(dateString) {
  * Bildirim gösterir
  */
 function showNotification(message, type = 'info') {
+  // Önceki bildirimi kaldır
   const existingNotification = document.querySelector('.notification');
   if (existingNotification) {
     existingNotification.remove();
@@ -458,22 +527,41 @@ function showNotification(message, type = 'info') {
   
   document.body.appendChild(notification);
   
+  // Animasyonu başlat
   setTimeout(() => {
     notification.classList.add('show');
   }, 10);
   
+  // Bildirimi kaldır
   setTimeout(() => {
     notification.classList.remove('show');
     setTimeout(() => {
       if (notification.parentNode) {
         notification.remove();
       }
-    }, 300);
+    }, 300); // CSS transition süresiyle eşleşmeli
   }, 3000);
+}
+
+/**
+ * Service Worker Kaydı
+ */
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(registration => {
+          console.log('ServiceWorker kaydı başarılı, scope: ', registration.scope);
+        })
+        .catch(error => {
+          console.log('ServiceWorker kaydı başarısız: ', error);
+        });
+    });
+  }
 }
 
 // Global hata yakalama
 window.addEventListener('error', (event) => {
   console.error('Planlar sayfası hatası:', event.error);
-  showNotification('Bir hata oluştu. Lütfen sayfayı yenileyin.', 'error');
+  showNotification('Beklenmedik bir hata oluştu. Lütfen sayfayı yenileyin.', 'error');
 });

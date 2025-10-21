@@ -2,171 +2,80 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Planner Pro</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Planner Pro - Ana Sayfa</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        /* Basit fallback stiller */
-        :root {
-            --primary-color: #4361ee;
-            --bg-color: #f8f9fa;
-            --text-color: #333;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: var(--bg-color);
-            color: var(--text-color);
-        }
-    </style>
+    <meta name="theme-color" content="#3498db">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app">
-        <header style="background: var(--primary-color); color: white; padding: 1rem; border-radius: 10px; margin-bottom: 2rem;">
-            <h1 style="margin: 0;">📅 Planner Pro</h1>
+    <div id="app" class="app-container">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-calendar-check"></i>
+                    <h1>Planner Pro</h1>
+                </div>
+                <button id="themeToggle" class="theme-btn" title="Temayı Değiştir">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
         </header>
 
-        <main style="max-width: 600px; margin: 0 auto;">
-            <section style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem;">
-                <h2>Takvim Seçimi</h2>
-                <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
-                    <input type="date" id="datePicker" style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 5px;">
-                    <button id="viewPlans" style="background: var(--primary-color); color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">
-                        Planları Gör
+        <main class="container">
+            <section class="date-selector-container">
+                <div class="section-header">
+                    <h2><i class="fas fa-calendar-alt"></i> Takvim Seçimi</h2>
+                    <p>Görüntülemek veya düzenlemek için bir tarih seçin.</p>
+                </div>
+                
+                <div class="date-selector">
+                    <div class="date-input-container">
+                        <i class="fas fa-calendar-day"></i>
+                        <input type="date" id="datePicker">
+                    </div>
+                    <button id="viewPlans" class="primary-btn">
+                        <i class="fas fa-search"></i> Planları Gör
                     </button>
                 </div>
                 
-                <div style="margin-top: 1.5rem;">
+                <div class="quick-actions">
                     <h3>Hızlı Erişim</h3>
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <button class="quick-btn" data-offset="0" style="background: #e9ecef; border: 1px solid #ddd; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">Bugün</button>
-                        <button class="quick-btn" data-offset="1" style="background: #e9ecef; border: 1px solid #ddd; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">Yarın</button>
-                        <button class="quick-btn" data-offset="7" style="background: #e9ecef; border: 1px solid #ddd; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">1 Hafta</button>
+                    <div class="quick-buttons">
+                        <button class="quick-btn" data-offset="0">
+                            <i class="fas fa-star"></i>
+                            <span>Bugün</span>
+                        </button>
+                        <button class="quick-btn" data-offset="1">
+                            <i class="fas fa-sun"></i>
+                            <span>Yarın</span>
+                        </button>
+                        <button class="quick-btn" data-offset="7">
+                            <i class="fas fa-calendar-week"></i>
+                            <span>1 Hafta</span>
+                        </button>
                     </div>
                 </div>
             </section>
 
-            <section style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                <h2>Son Planlar</h2>
-                <div id="recentPlans">
-                    <p style="text-align: center; color: #666; padding: 2rem;">Henüz plan yok</p>
+            <section class="recent-plans-container">
+                <div class="section-header">
+                    <h2><i class="fas fa-history"></i> Son Planlar</h2>
+                    <p>En son eklenen planlarınıza hızla göz atın.</p>
+                </div>
+                
+                <div id="recentPlans" class="recent-plans-list">
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-plus"></i>
+                        <p>Henüz hiç planınız yok</p>
+                    </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <script>
-        // Basit ve hatasız JavaScript
-        console.log('Planner Pro başlatılıyor...');
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM yüklendi');
-            
-            // Elementleri bul
-            const datePicker = document.getElementById('datePicker');
-            const viewPlans = document.getElementById('viewPlans');
-            const quickBtns = document.querySelectorAll('.quick-btn');
-            const recentPlans = document.getElementById('recentPlans');
-            
-            // Bugünün tarihini ayarla
-            if (datePicker) {
-                const today = new Date();
-                datePicker.value = today.toISOString().split('T')[0];
-                console.log('Tarih ayarlandı:', datePicker.value);
-            }
-            
-            // Planları gör butonu
-            if (viewPlans) {
-                viewPlans.addEventListener('click', function() {
-                    const date = datePicker.value;
-                    if (!date) {
-                        alert('Lütfen bir tarih seçin!');
-                        return;
-                    }
-                    console.log('Plana git:', date);
-                    window.location.href = `plans.html?date=${date}`;
-                });
-            }
-            
-            // Hızlı erişim butonları
-            quickBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const offset = parseInt(this.getAttribute('data-offset'));
-                    const date = new Date();
-                    date.setDate(date.getDate() + offset);
-                    const formattedDate = date.toISOString().split('T')[0];
-                    
-                    datePicker.value = formattedDate;
-                    console.log('Hızlı tarih:', formattedDate);
-                    
-                    // Bugün/yarın için otomatik yönlendirme
-                    if (offset <= 1) {
-                        window.location.href = `plans.html?date=${formattedDate}`;
-                    }
-                });
-            });
-            
-            // Son planları yükle
-            function loadRecentPlans() {
-                try {
-                    const plans = JSON.parse(localStorage.getItem('plannerDatePlans') || '{}');
-                    const planDates = Object.keys(plans).filter(date => plans[date].length > 0);
-                    
-                    if (planDates.length === 0) {
-                        recentPlans.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">Henüz plan yok</p>';
-                        return;
-                    }
-                    
-                    let html = '';
-                    planDates.slice(0, 5).forEach(date => {
-                        const taskCount = plans[date].length;
-                        const completed = plans[date].filter(task => task.completed).length;
-                        html += `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #f8f9fa; margin: 0.5rem 0; border-radius: 5px; cursor: pointer;" 
-                                 onclick="window.location.href='plans.html?date=${date}'">
-                                <div>${formatDate(date)}</div>
-                                <div style="background: var(--primary-color); color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.8rem;">
-                                    ${completed}/${taskCount}
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    recentPlans.innerHTML = html;
-                } catch (error) {
-                    console.error('Plan yükleme hatası:', error);
-                    recentPlans.innerHTML = '<p style="color: red; text-align: center;">Planlar yüklenirken hata oluştu</p>';
-                }
-            }
-            
-            // Tarih formatlama
-            function formatDate(dateString) {
-                const date = new Date(dateString);
-                const today = new Date();
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                
-                if (date.toDateString() === today.toDateString()) return 'Bugün';
-                if (date.toDateString() === tomorrow.toDateString()) return 'Yarın';
-                
-                return date.toLocaleDateString('tr-TR', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                });
-            }
-            
-            // İlk yükleme
-            loadRecentPlans();
-            console.log('Uygulama başlatıldı');
-        });
-        
-        // Global hata yakalama
-        window.addEventListener('error', function(e) {
-            console.error('Global hata:', e.error);
-        });
-    </script>
+    <script src="renderer.js" defer></script>
 </body>
 </html>

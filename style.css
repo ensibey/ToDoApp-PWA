@@ -9,7 +9,7 @@
   --text-light: #fff;
   --bg-color: #f9f9f9;
   --card-bg: #fff;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   --border-radius: 12px;
   --transition: all 0.3s ease;
 }
@@ -36,7 +36,6 @@
 
 body {
   background: var(--bg-color);
-  /* 'Inter' fontu Google Fonts'tan yüklenecek */
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text-color);
   transition: var(--transition);
@@ -51,10 +50,15 @@ body {
 
 /* Header Styles */
 header {
-  background: var(--dark-color);
-  color: var(--text-light);
+  background: var(--card-bg);
+  color: var(--text-color);
   padding: 15px 0;
   box-shadow: var(--shadow);
+  border-bottom: 1px solid var(--light-color);
+}
+
+[data-theme="dark"] header {
+    border-bottom-color: var(--dark-color);
 }
 
 .header-content {
@@ -83,18 +87,23 @@ header {
 }
 
 .theme-btn {
-  background: transparent;
+  background: var(--light-color);
   border: none;
-  color: var(--text-light);
-  font-size: 1.2rem;
+  color: var(--text-color);
+  font-size: 1.1rem;
   cursor: pointer;
-  padding: 8px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .theme-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--primary-color);
+  color: var(--text-light);
 }
 
 /* Main Container */
@@ -108,12 +117,15 @@ header {
   gap: 30px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 992px) {
+  /* Ana sayfada 2 sütunlu yapı */
   .container {
     grid-template-columns: 1fr 1fr;
   }
+  /* Planlar sayfasında 1 sütunlu yapı */
   .plans-page .container {
-    grid-template-columns: 1fr; /* Plans sayfasında tek sütun */
+    grid-template-columns: 1fr;
+    max-width: 900px;
   }
 }
 
@@ -128,10 +140,8 @@ section {
 
 .section-header {
   margin-bottom: 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--light-color);
   padding-bottom: 15px;
-  /* Dark mode için border rengi */
-  border-color: var(--light-color); 
 }
 
 .section-header h2 {
@@ -171,10 +181,10 @@ section {
 #datePicker {
   width: 100%;
   padding: 12px 15px 12px 45px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--light-color);
   border-radius: var(--border-radius);
   font-size: 1rem;
-  background: var(--card-bg);
+  background: var(--bg-color);
   color: var(--text-color);
   transition: var(--transition);
 }
@@ -200,6 +210,7 @@ section {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  text-align: center;
 }
 
 .primary-btn:hover {
@@ -209,6 +220,10 @@ section {
 }
 
 /* Quick Actions */
+.quick-actions {
+  margin-top: 25px;
+}
+
 .quick-actions h3 {
   margin-bottom: 15px;
   font-size: 1.2rem;
@@ -216,7 +231,7 @@ section {
 
 .quick-buttons {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Daha kompakt hale getirildi */
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 10px;
 }
 
@@ -231,9 +246,9 @@ section {
   cursor: pointer;
   transition: var(--transition);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 8px;
 }
 
 .quick-btn:hover {
@@ -291,43 +306,48 @@ section {
   margin-bottom: 15px;
   opacity: 0.5;
 }
+
 /* Notification Styles */
 .notification {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  background: var(--card-bg);
-  color: var(--text-color);
+  bottom: 20px; /* Altta göstermek daha modern */
+  left: 50%;
+  transform: translate(-50%, 150%); /* Başlangıç pozisyonu */
+  background: var(--dark-color);
+  color: var(--text-light);
   padding: 15px 20px;
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
   z-index: 1000;
-  transform: translateX(120%);
-  transition: transform 0.3s ease;
+  transition: transform 0.4s ease-in-out;
   display: flex;
   align-items: center;
-  gap: 10px;
-  max-width: 350px;
+  gap: 15px;
+  max-width: 90%;
+  width: 400px;
 }
 
 .notification.show {
-  transform: translateX(0);
+  transform: translate(-50%, 0); /* Görünür pozisyon */
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .notification-success {
-  border-left: 4px solid var(--secondary-color);
+  background: var(--secondary-color);
 }
-
 .notification-warning {
-  border-left: 4px solid var(--warning-color);
+  background: var(--warning-color);
 }
-
 .notification-info {
-  border-left: 4px solid var(--primary-color);
+  background: var(--primary-color);
 }
-
 .notification-error {
-  border-left: 4px solid var(--danger-color);
+  background: var(--danger-color);
 }
 
 .notification i {
@@ -367,10 +387,10 @@ section {
 .input-group input {
   flex: 1;
   padding: 12px 15px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--light-color);
   border-radius: var(--border-radius);
   font-size: 1rem;
-  background: var(--card-bg);
+  background: var(--bg-color);
   color: var(--text-color);
   transition: var(--transition);
 }
@@ -385,7 +405,6 @@ section {
 .task-filters {
   display: flex;
   gap: 10px;
-  /* margin-bottom: 20px; */
 }
 
 .filter-btn {
@@ -405,17 +424,30 @@ section {
 }
 
 .filter-btn:hover:not(.active) {
-  background: rgba(52, 152, 219, 0.2);
+  background: #ddd;
 }
+
+[data-theme="dark"] .filter-btn:hover:not(.active) {
+    background: var(--dark-color);
+}
+
 
 /* Task Stats */
 .task-stats {
-  display: flex;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
   margin-bottom: 20px;
   padding: 15px;
   background: var(--light-color);
   border-radius: var(--border-radius);
+}
+
+@media (min-width: 768px) {
+    .task-stats {
+        grid-template-columns: repeat(4, 1fr);
+        justify-content: space-around;
+    }
 }
 
 .stat-item {
@@ -451,7 +483,7 @@ section {
   background: var(--light-color);
   border-radius: var(--border-radius);
   transition: var(--transition);
-  animation: fadeIn 0.3s ease-out; /* Yeni görevler için animasyon */
+  animation: fadeIn 0.3s ease-out;
 }
 
 @keyframes fadeIn {
@@ -487,8 +519,8 @@ section {
 }
 
 .checkmark {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   background: var(--card-bg);
   border: 2px solid #ddd;
   border-radius: 50%;
@@ -504,7 +536,7 @@ section {
 }
 
 .task-checkbox input:checked ~ .checkmark:after {
-  content: '\f00c'; /* Font Awesome check icon */
+  content: '\f00c';
   font-family: 'Font Awesome 6 Free';
   font-weight: 900;
   color: white;
@@ -514,7 +546,7 @@ section {
 .task-text {
   flex: 1;
   text-align: left;
-  word-break: break-word; /* Uzun görev metinleri için */
+  word-break: break-word;
 }
 
 .task-actions {
@@ -532,10 +564,15 @@ section {
   background: transparent;
   border: none;
   color: var(--text-color);
-  padding: 5px;
-  border-radius: 4px;
+  padding: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   cursor: pointer;
   transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .edit-btn:hover {
@@ -572,25 +609,30 @@ section {
     flex-direction: column;
   }
   
-  .task-stats {
-    flex-direction: column;
-    gap: 15px;
-    align-items: flex-start;
-  }
-
-  .stat-item {
-      align-items: flex-start;
-  }
-  
   .task-item {
     padding: 12px;
+    flex-wrap: wrap;
   }
   
   .task-actions {
     opacity: 1; /* Mobil cihazlarda her zaman göster */
+    margin-left: auto;
   }
 
   .task-filters {
     flex-wrap: wrap;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .notification {
+    width: 90%;
+    bottom: 10px;
+    left: 5%;
+    transform: translate(0, 150%);
+  }
+
+  .notification.show {
+    transform: translate(0, 0);
   }
 }

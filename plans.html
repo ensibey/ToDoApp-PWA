@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#4361ee">
+    <meta name="theme-color" content="#3498db">
+    <link rel="manifest" href="manifest.json">
     <title>Planner Pro - Planlar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div id="app" class="app-container">
+<body class="plans-page"> <div id="app" class="app-container">
         <header>
             <div class="header-content">
                 <div class="logo">
@@ -67,7 +67,7 @@
             </section>
             
             <section style="grid-column: 1 / -1;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                     <div class="task-filters">
                         <button class="filter-btn active" data-filter="all">Tümü</button>
                         <button class="filter-btn" data-filter="pending">Bekleyen</button>
@@ -88,6 +88,6 @@
         </main>
     </div>
 
-    <script src="plans.js"></script>
+    <script src="plans.js" defer></script>
 </body>
 </html>
